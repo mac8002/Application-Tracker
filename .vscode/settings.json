@@ -1,0 +1,4 @@
+{
+    "zencoder.enableRepoIndexing": true,
+    "python-envs.defaultEnvManager": "ms-python.python:system"
+}
