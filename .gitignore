@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+
+# Environment variables - NEVER commit these
+.env
+_env.txt
+*.env
+
+# Excel output file
+job_opportunities.xlsx
+
+# OS files
+.DS_Store
+Thumbs.db
