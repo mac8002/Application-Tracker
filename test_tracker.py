@@ -23,9 +23,9 @@ def test_environment():
     recipient_email = os.getenv("RECIPIENT_EMAIL")
     
     print("=== Environment Test ===")
-    print(f"EMAIL_ADDRESS: {'✓ Set' if email_address else '✗ Not set'}")
-    print(f"EMAIL_PASSWORD: {'✓ Set' if email_password else '✗ Not set'}")
-    print(f"RECIPIENT_EMAIL: {'✓ Set' if recipient_email else '✗ Not set'}")
+    print(f"EMAIL_ADDRESS: {' Set' if email_address else ' Not set'}")
+    print(f"EMAIL_PASSWORD: {' Set' if email_password else ' Not set'}")
+    print(f"RECIPIENT_EMAIL: {' Set' if recipient_email else ' Not set'}")
     print()
 
 def test_spreadsheet():
@@ -33,11 +33,11 @@ def test_spreadsheet():
     print("=== Spreadsheet Test ===")
     try:
         df = init_spreadsheet()
-        print(f"✓ Spreadsheet initialized successfully")
+        print(f" Spreadsheet initialized successfully")
         print(f"  Columns: {list(df.columns)}")
         print(f"  Rows: {len(df)}")
     except Exception as e:
-        print(f"✗ Spreadsheet initialization failed: {e}")
+        print(f" Spreadsheet initialization failed: {e}")
     print()
 
 def test_scraping_basic():
@@ -48,7 +48,7 @@ def test_scraping_basic():
     
     try:
         jobs = scrape_jobs()
-        print(f"✓ Scraping completed")
+        print(f" Scraping completed")
         print(f"  Jobs found: {len(jobs)}")
         
         if jobs:
@@ -57,7 +57,7 @@ def test_scraping_basic():
             for key, value in sample_job.items():
                 print(f"    {key}: {value}")
     except KeyboardInterrupt:
-        print("✗ Scraping cancelled by user")
+        print(" Scraping cancelled by user")
     except Exception as e:
         print(f"✗ Scraping failed: {e}")
     print()
