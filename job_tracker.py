@@ -27,7 +27,10 @@ SPREADSHEET_PATH = "job_opportunities.xlsx"
 JOB_BOARDS = {
     "LinkedIn": "https://www.linkedin.com/jobs/search/?keywords=QA%20Engineer&location=Remote",
     "Indeed": "https://www.indeed.com/jobs?q=QA+Engineer&l=Remote",
-    "Glassdoor": "https://www.glassdoor.com/Job/remote-qa-engineer-jobs-SRCH_IL.0,6_IC1154532_KO7,18.htm"
+    "Glassdoor": "https://www.glassdoor.com/Job/remote-qa-engineer-jobs-SRCH_IL.0,6_IC1154532_KO7,18.htm",
+    "ZipRecruiter": "https://www.ziprecruiter.com/Jobs/QA-Engineer?radius=25&refine_by_location_type=only_remote",
+    "Dice": "https://www.dice.com/jobs?q=QA+Engineer&location=Remote&filters.postedDate=ONE_WEEK",
+    "SimplyHired": "https://www.simplyhired.com/search?q=qa+engineer&l=remote"
 }
 
 # Initialize spreadsheet
@@ -43,68 +46,57 @@ def init_spreadsheet():
 def process_job_board(soup, source):
     """Process job listings from different job boards"""
     jobs = []
-    
+
     if source == "LinkedIn":
-        # Updated selectors for current LinkedIn structure
         job_cards = soup.select("[data-testid='job-search-result']")
         if not job_cards:
-            # Fallback selectors
             job_cards = soup.select(".jobs-search-results__list-item, .job-search-card")
-        
+
         print(f"Found {len(job_cards)} job cards on {source}")
-        
-        for card in job_cards[:10]:  # Limit to 10
+
+        for card in job_cards[:10]:
             try:
-                # Try multiple selector patterns for title
-                title_elem = (card.select_one(".job-card-list__title a") or 
+                title_elem = (card.select_one(".job-card-list__title a") or
                             card.select_one(".job-card-list__title") or
                             card.select_one("[data-testid='job-title']") or
                             card.select_one("h3 a") or
                             card.select_one(".base-search-card__title"))
-                
-                # Try multiple selector patterns for company
+
                 company_elem = (card.select_one(".job-card-container__company-name") or
                               card.select_one("[data-testid='job-search-card-subtitle']") or
                               card.select_one(".base-search-card__subtitle") or
                               card.select_one("h4 a"))
-                
-                # Try multiple selector patterns for location
+
                 location_elem = (card.select_one(".job-card-container__metadata-item") or
                                card.select_one("[data-testid='job-search-card-location']") or
                                card.select_one(".job-search-card__location"))
-                
-                # Try to get posting date
+
                 date_elem = (card.select_one("time") or
                            card.select_one(".job-search-card__listdate") or
                            card.select_one("[data-testid='job-search-card-date']"))
-                
-                # Get link
+
                 link_elem = (card.select_one(".job-card-list__title a") or
                            card.select_one("h3 a") or
                            card.select_one(".base-search-card__title a"))
-                
+
                 if title_elem and company_elem:
                     title_text = title_elem.get_text(strip=True)
                     company_text = company_elem.get_text(strip=True)
                     location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
-                    
-                    # Extract posting date
+
                     posting_date = "N/A"
                     if date_elem:
-                        date_text = date_elem.get_text(strip=True)
-                        # Try to get datetime attribute if available
                         if date_elem.get("datetime"):
                             posting_date = date_elem["datetime"]
                         else:
-                            posting_date = date_text
-                    
-                    # Handle link extraction
+                            posting_date = date_elem.get_text(strip=True)
+
                     link_url = ""
                     if link_elem and link_elem.get("href"):
                         link_url = link_elem["href"]
                         if link_url.startswith("/"):
                             link_url = "https://www.linkedin.com" + link_url
-                    
+
                     jobs.append({
                         "Date_Found": datetime.now().strftime("%Y-%m-%d"),
                         "Title": title_text,
@@ -115,19 +107,18 @@ def process_job_board(soup, source):
                         "Posting_Date": posting_date
                     })
                     print(f"Scraped: {title_text} at {company_text}")
-            
+
             except Exception as e:
                 print(f"Error processing job card: {e}")
                 continue
-    
+
     elif source == "Indeed":
-        # Indeed job scraping
-        job_cards = soup.select("[data-jk]")  # Indeed uses data-jk attribute
+        job_cards = soup.select("[data-jk]")
         if not job_cards:
             job_cards = soup.select(".job_seen_beacon")
-        
+
         print(f"Found {len(job_cards)} job cards on {source}")
-        
+
         for card in job_cards[:10]:
             try:
                 title_elem = card.select_one("h2 a span") or card.select_one(".jobTitle a")
@@ -135,23 +126,22 @@ def process_job_board(soup, source):
                 location_elem = card.select_one("[data-testid='job-location']") or card.select_one(".companyLocation")
                 date_elem = card.select_one(".date") or card.select_one("[data-testid='job-age']")
                 link_elem = card.select_one("h2 a") or card.select_one(".jobTitle a")
-                
+
                 if title_elem and company_elem:
                     title_text = title_elem.get_text(strip=True)
                     company_text = company_elem.get_text(strip=True)
                     location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
-                    
-                    # Extract posting date
+
                     posting_date = "N/A"
                     if date_elem:
                         posting_date = date_elem.get_text(strip=True)
-                    
+
                     link_url = ""
                     if link_elem and link_elem.get("href"):
                         link_url = link_elem["href"]
                         if link_url.startswith("/"):
                             link_url = "https://www.indeed.com" + link_url
-                    
+
                     jobs.append({
                         "Date_Found": datetime.now().strftime("%Y-%m-%d"),
                         "Title": title_text,
@@ -162,17 +152,16 @@ def process_job_board(soup, source):
                         "Posting_Date": posting_date
                     })
                     print(f"Scraped: {title_text} at {company_text}")
-            
+
             except Exception as e:
                 print(f"Error processing Indeed job card: {e}")
                 continue
-    
+
     elif source == "Glassdoor":
-        # Glassdoor job scraping
         job_cards = soup.select("[data-test='job-listing']") or soup.select(".react-job-listing")
-        
+
         print(f"Found {len(job_cards)} job cards on {source}")
-        
+
         for card in job_cards[:10]:
             try:
                 title_elem = card.select_one("[data-test='job-title']") or card.select_one(".jobTitle")
@@ -180,23 +169,22 @@ def process_job_board(soup, source):
                 location_elem = card.select_one("[data-test='job-location']") or card.select_one(".location")
                 date_elem = card.select_one("[data-test='job-age']") or card.select_one(".jobAge")
                 link_elem = card.select_one("[data-test='job-title'] a") or card.select_one(".jobTitle a")
-                
+
                 if title_elem and company_elem:
                     title_text = title_elem.get_text(strip=True)
                     company_text = company_elem.get_text(strip=True)
                     location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
-                    
-                    # Extract posting date
+
                     posting_date = "N/A"
                     if date_elem:
                         posting_date = date_elem.get_text(strip=True)
-                    
+
                     link_url = ""
                     if link_elem and link_elem.get("href"):
                         link_url = link_elem["href"]
                         if link_url.startswith("/"):
                             link_url = "https://www.glassdoor.com" + link_url
-                    
+
                     jobs.append({
                         "Date_Found": datetime.now().strftime("%Y-%m-%d"),
                         "Title": title_text,
@@ -207,11 +195,186 @@ def process_job_board(soup, source):
                         "Posting_Date": posting_date
                     })
                     print(f"Scraped: {title_text} at {company_text}")
-            
+
             except Exception as e:
                 print(f"Error processing Glassdoor job card: {e}")
                 continue
-    
+
+    elif source == "ZipRecruiter":
+        job_cards = soup.select("[data-testid='job-card']")
+        if not job_cards:
+            job_cards = soup.select(".job_content, .jobList-item")
+
+        print(f"Found {len(job_cards)} job cards on {source}")
+
+        for card in job_cards[:10]:
+            try:
+                title_elem = (card.select_one("[data-testid='job-title']") or
+                             card.select_one(".jobList-title") or
+                             card.select_one("h2 a") or
+                             card.select_one(".title"))
+
+                company_elem = (card.select_one("[data-testid='company-name']") or
+                               card.select_one(".jobList-company") or
+                               card.select_one(".company_name"))
+
+                location_elem = (card.select_one("[data-testid='job-location']") or
+                                card.select_one(".jobList-location") or
+                                card.select_one(".location"))
+
+                date_elem = card.select_one(".jobList-date") or card.select_one("[data-testid='job-age']")
+
+                link_elem = (card.select_one("a[data-testid='job-title-link']") or
+                            card.select_one("h2 a") or
+                            card.select_one(".title a"))
+
+                if title_elem and company_elem:
+                    title_text = title_elem.get_text(strip=True)
+                    company_text = company_elem.get_text(strip=True)
+                    location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
+
+                    posting_date = "N/A"
+                    if date_elem:
+                        posting_date = date_elem.get_text(strip=True)
+
+                    link_url = ""
+                    if link_elem and link_elem.get("href"):
+                        link_url = link_elem["href"]
+                        if link_url.startswith("/"):
+                            link_url = "https://www.ziprecruiter.com" + link_url
+
+                    jobs.append({
+                        "Date_Found": datetime.now().strftime("%Y-%m-%d"),
+                        "Title": title_text,
+                        "Company": company_text,
+                        "Location": location_text,
+                        "Link": link_url,
+                        "Source": source,
+                        "Posting_Date": posting_date
+                    })
+                    print(f"Scraped: {title_text} at {company_text}")
+
+            except Exception as e:
+                print(f"Error processing ZipRecruiter job card: {e}")
+                continue
+
+    elif source == "Dice":
+        job_cards = soup.select("dhi-search-result, .card")
+        if not job_cards:
+            job_cards = soup.select("[data-cy='card']")
+
+        print(f"Found {len(job_cards)} job cards on {source}")
+
+        for card in job_cards[:10]:
+            try:
+                title_elem = (card.select_one("[data-cy='card-title-link']") or
+                             card.select_one(".card-title-link") or
+                             card.select_one("a.title") or
+                             card.select_one("h5 a"))
+
+                company_elem = (card.select_one("[data-cy='search-result-company-name']") or
+                               card.select_one(".company-name") or
+                               card.select_one(".employer-name"))
+
+                location_elem = (card.select_one("[data-cy='search-result-location']") or
+                                card.select_one(".location") or
+                                card.select_one(".search-result-location"))
+
+                date_elem = (card.select_one("[data-cy='card-posted-date']") or
+                            card.select_one(".posted-date"))
+
+                link_elem = (card.select_one("[data-cy='card-title-link']") or
+                            card.select_one("a.title") or
+                            card.select_one("h5 a"))
+
+                if title_elem and company_elem:
+                    title_text = title_elem.get_text(strip=True)
+                    company_text = company_elem.get_text(strip=True)
+                    location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
+
+                    posting_date = "N/A"
+                    if date_elem:
+                        posting_date = date_elem.get_text(strip=True)
+
+                    link_url = ""
+                    if link_elem and link_elem.get("href"):
+                        link_url = link_elem["href"]
+                        if link_url.startswith("/"):
+                            link_url = "https://www.dice.com" + link_url
+
+                    jobs.append({
+                        "Date_Found": datetime.now().strftime("%Y-%m-%d"),
+                        "Title": title_text,
+                        "Company": company_text,
+                        "Location": location_text,
+                        "Link": link_url,
+                        "Source": source,
+                        "Posting_Date": posting_date
+                    })
+                    print(f"Scraped: {title_text} at {company_text}")
+
+            except Exception as e:
+                print(f"Error processing Dice job card: {e}")
+                continue
+
+    elif source == "SimplyHired":
+        job_cards = soup.select("[data-testid='searchSerpJob']")
+        if not job_cards:
+            job_cards = soup.select(".SerpJob, .jobposting-snippet")
+
+        print(f"Found {len(job_cards)} job cards on {source}")
+
+        for card in job_cards[:10]:
+            try:
+                title_elem = (card.select_one("[data-testid='searchSerpJobTitle']") or
+                             card.select_one("h3 a") or
+                             card.select_one(".title"))
+
+                company_elem = (card.select_one("[data-testid='searchSerpJobCompanyName']") or
+                               card.select_one(".company") or
+                               card.select_one("[data-testid='companyName']"))
+
+                location_elem = (card.select_one("[data-testid='searchSerpJobLocation']") or
+                                card.select_one(".location") or
+                                card.select_one("[data-testid='jobLocation']"))
+
+                date_elem = (card.select_one("[data-testid='searchSerpJobAge']") or
+                            card.select_one(".date"))
+
+                link_elem = (card.select_one("h3 a") or
+                            card.select_one(".title a") or
+                            card.select_one("a[data-testid='searchSerpJobTitle']"))
+
+                if title_elem and company_elem:
+                    title_text = title_elem.get_text(strip=True)
+                    company_text = company_elem.get_text(strip=True)
+                    location_text = location_elem.get_text(strip=True) if location_elem else "N/A"
+
+                    posting_date = "N/A"
+                    if date_elem:
+                        posting_date = date_elem.get_text(strip=True)
+
+                    link_url = ""
+                    if link_elem and link_elem.get("href"):
+                        link_url = link_elem["href"]
+                        if link_url.startswith("/"):
+                            link_url = "https://www.simplyhired.com" + link_url
+
+                    jobs.append({
+                        "Date_Found": datetime.now().strftime("%Y-%m-%d"),
+                        "Title": title_text,
+                        "Company": company_text,
+                        "Location": location_text,
+                        "Link": link_url,
+                        "Source": source,
+                        "Posting_Date": posting_date
+                    })
+                    print(f"Scraped: {title_text} at {company_text}")
+
+            except Exception as e:
+                print(f"Error processing SimplyHired job card: {e}")
+                continue
+
     return jobs
 
 # Scrape job listings
@@ -222,7 +385,7 @@ def scrape_jobs():
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
-    
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     jobs = []
@@ -231,9 +394,8 @@ def scrape_jobs():
         for source, url in JOB_BOARDS.items():
             print(f"Scraping {source}...")
             driver.get(url)
-            time.sleep(5)  # Wait for page load
-            
-            # Wait for job listings to load (different selectors for different sites)
+            time.sleep(5)
+
             try:
                 if source == "LinkedIn":
                     WebDriverWait(driver, 10).until(
@@ -247,14 +409,23 @@ def scrape_jobs():
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='job-listing'], .react-job-listing"))
                     )
+                elif source == "ZipRecruiter":
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "[data-testid='job-card'], .jobList-item"))
+                    )
+                elif source == "Dice":
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "dhi-search-result, [data-cy='card']"))
+                    )
+                elif source == "SimplyHired":
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "[data-testid='searchSerpJob'], .SerpJob"))
+                    )
             except Exception as e:
                 print(f"Failed to load job listings from {source}: {e}")
                 print("Continuing with available page content...")
-                # Don't skip, try to scrape what's available
-            
-            soup = BeautifulSoup(driver.page_source, "html.parser")
 
-            # Process different job boards
+            soup = BeautifulSoup(driver.page_source, "html.parser")
             jobs_found = process_job_board(soup, source)
             jobs.extend(jobs_found)
 
@@ -277,8 +448,6 @@ def save_to_spreadsheet(jobs):
     df = pd.concat([df, truly_new], ignore_index=True)
     df.to_excel(SPREADSHEET_PATH, index=False)
     return truly_new
-
-
 
 # Send email notification
 def send_email(new_jobs):
@@ -305,10 +474,10 @@ def send_email(new_jobs):
             body += f"   Source: {job['Source']}\n"
             body += f"   Date Found: {job['Date_Found']}\n"
             body += f"   Posting Date: {job['Posting_Date']}\n\n"
-        
+
         body += f"\nTotal jobs in database: {len(pd.read_excel(SPREADSHEET_PATH))}\n"
         body += f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        
+
         msg.attach(MIMEText(body, "plain"))
 
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
@@ -316,7 +485,7 @@ def send_email(new_jobs):
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.send_message(msg)
             print(f"✓ Email notification sent successfully to {RECIPIENT_EMAIL}")
-            
+
     except smtplib.SMTPAuthenticationError:
         print("✗ Email authentication failed. Please check your email credentials.")
         print("Note: For Gmail, you may need to use an App Password instead of your regular password.")
@@ -328,39 +497,38 @@ def send_email(new_jobs):
 # Main job processing function
 def process_jobs():
     print(f"=== Job Tracker Started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===")
-    
+
     try:
         print(" Scraping job boards for QA Engineer jobs...")
         jobs = scrape_jobs()
-        
+
         if not jobs:
             print("  No jobs found during scraping.")
             return
-        
+
         print(f" Saving {len(jobs)} jobs to spreadsheet...")
         new_jobs = save_to_spreadsheet(jobs)
-        
+
         if not new_jobs.empty:
             print(f" Found {len(new_jobs)} new jobs!")
-            
             print(" Sending email notification...")
             send_email(new_jobs)
         else:
             print("ℹ  No new QA Engineer jobs found (all jobs already in database).")
-            
+
     except Exception as e:
         print(f" Error in main process: {e}")
-    
+
     print(f"=== Job Tracker Completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ===\n")
 
-# Schedule daily task
-schedule.every().day.at("09:00").do(process_jobs)
-
-# Run scheduler
 if __name__ == "__main__":
     print("QA Engineer Job Tracker started...")
     print("This script will scrape job boards and create a comprehensive spreadsheet with job details.")
-    process_jobs()  # Run immediately for testing
+
+    # Schedule daily task
+    schedule.every().day.at("09:00").do(process_jobs)
+
+    process_jobs()  # Run immediately
     while True:
         schedule.run_pending()
         time.sleep(60)
