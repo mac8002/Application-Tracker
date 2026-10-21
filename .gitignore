@@ -1,18 +1,24 @@
-# Python
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+
+# Personal job data and backups
+job_opportunities.xlsx
+job_opportunities*.xlsx
+*.xlsx.bak
+*.xlsx
+
+# Browser profile and temporary files
+chrome_profile/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+.pytest_cache/
+.venv/
 venv/
 
-# Environment variables - NEVER commit these
-.env
-_env.txt
-*.env
-
-# Excel output file
-job_opportunities.xlsx
-
-# OS files
-.DS_Store
-Thumbs.db
-.vscide/
+# Logs and local IDE files
+*.log
+.vscode/
+.idea/
+chrome_profile_runtime/
