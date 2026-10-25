@@ -23,3 +23,49 @@ venv/
 .idea/
 chrome_profile_runtime/
 
+# Application Tracker V6 local artifacts
+# Python generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local credentials and browser data
+.env
+.env.*
+!.env.example
+.wdm/
+chrome_profile/
+chrome_profile_runtime/
+
+# Generated job data and workbooks
+*.xlsx
+*.xls
+scraped_jobs_test.csv
+
+# Local backups and experimental work
+backup_before_*/
+production_backup_before_*/
+controlled_test_*/
+integration_test_*/
+job_tracker_backup_*.py
+job_tracker_before_*.py
+job_tracker.py.step*_backup_*
+job_tracker_candidate_*.py
+job_tracker_test_runner_before_*.py
+qa_classifier_backup_*.py
+
+# Historical candidate versions (active versions explicitly included)
+*_candidate.py
+*_candidate_v*.py
+!qa_classifier_candidate_v6.py
+!qa_card_extractor_candidate_v2.py
+!dice_browser_enrichment_candidate_v4.py
+!dice_description_extractor_candidate_v3.py
+
+# Local test outputs
+job_opportunities_*test*
+
+.gitignore.before_v6_cleanup
+/qa_classifier.py
