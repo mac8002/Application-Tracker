@@ -2325,12 +2325,17 @@ def process_jobs():
 
 if __name__ == "__main__":
     print("QA Engineer Job Tracker started...")
-    print("This script will scrape job boards and create a comprehensive spreadsheet with job details.")
+    print("Daily scraping scheduled for 9:00 AM.")
+    print("Keep this terminal running for automatic execution.")
 
     # Schedule daily task
     schedule.every().day.at("09:00").do(process_jobs)
 
-    process_jobs()  # Run immediately
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    print("Scheduler is active. Waiting for the next scheduled run...")
+
+    try:
+        while True:
+            schedule.run_pending()
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("\nJob Tracker stopped by user.")
